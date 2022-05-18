@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js" integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"
+        integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <title>Websocket聊天室</title>
 </head>
 
@@ -199,7 +201,7 @@
     });
 
     const conWS = (userId) => {
-        let ws = new WebSocket("ws://ws-fun-demo.herokuapp.com/websockets?" + userId);
+        let ws = new WebSocket("wss://ws-fun-demo.herokuapp.com/websockets?" + userId);
 
         //開啟後執行的動作，指定一個 function 會在連結 WebSocket 後執行
         ws.onopen = () => {
