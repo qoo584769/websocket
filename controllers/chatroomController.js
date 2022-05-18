@@ -2,6 +2,7 @@ const { getDB, createUserDB,createChatroomDB,addChatrommDB, postDB } = require('
 const { userModel } = require('../models/user');
 const { messageModel } = require('../models/message');
 const { chatroomModel } = require('../models/chatroom');
+const { headers } = require('../utils/headers');
 
 const createChatroom = async (req, res, next) => {
   const chatroom = {
@@ -10,6 +11,7 @@ const createChatroom = async (req, res, next) => {
   };
   try {
       const result = await createChatroomDB(chatroomModel,chatroom)
+      headers();
       res.json({ result: result});
   } catch (error) {
       console.log(error);      
@@ -23,6 +25,7 @@ const addChatroom = async (req, res, next) => {
   
   try {
       const result = await addChatrommDB(chatroom)
+      headers();
       res.json(result);
   } catch (error) {
       console.log(error);      
