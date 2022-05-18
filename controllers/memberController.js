@@ -19,7 +19,7 @@ const signup = async (req, res, next) => {
   };
   try {
     const result = await createUserDB(userModel, user);
-    headers();
+    headers(res);
     res.json({ result: result });
   } catch (error) {
     // console.log(error);
@@ -47,7 +47,7 @@ const login = async (req, res, next) => {
         // 驗證的時候要用一樣的字串去解 不然會算不出原本的資料
         'secret'
       );
-      headers();
+      headers(res);
       res.setHeader('token', token);
       result.token = token;
       res.json({ result, token });

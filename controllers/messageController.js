@@ -12,7 +12,7 @@ const msg = async (req, res, next) => {
   };
   try {
     const result = await getMsgFromChatroom(msgData);
-    headers();
+    headers(res);
     res.json(result);
   } catch (error) {
     console.log(error);

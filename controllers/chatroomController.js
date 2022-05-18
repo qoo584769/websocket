@@ -11,7 +11,7 @@ const createChatroom = async (req, res, next) => {
   };
   try {
       const result = await createChatroomDB(chatroomModel,chatroom)
-      headers();
+      headers(res);
       res.json({ result: result});
   } catch (error) {
       console.log(error);      
@@ -25,7 +25,7 @@ const addChatroom = async (req, res, next) => {
   
   try {
       const result = await addChatrommDB(chatroom)
-      headers();
+      headers(res);
       res.json(result);
   } catch (error) {
       console.log(error);      
