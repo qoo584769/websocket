@@ -112,8 +112,8 @@
             .post("https://ws-fun-demo.herokuapp.com/member/login", name)
             .then((res) => {
                 console.log(res.data);
-                ws = conWS(res.data.result._id);
-                myId = res.data.result._id;
+                ws = conWS(res.data.result.id);
+                myId = res.data.result.id;
                 chatroomList = res.data.result.chatroomid;
                 // 如果已經有聊天室 預設聊天室是第一個
                 chatroomId = res.data.result.chatroomid[0];
@@ -121,8 +121,8 @@
                 getMessageList({
                     chatroomId: chatroomId
                 });
-                chatContainer.classList.remove("hide");
                 loginWrap.classList.add("hide");
+                chatContainer.classList.remove("hide");
             })
             .catch((err) => {
                 console.log(err);
