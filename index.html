@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js" integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <title>Websocket聊天室</title>
+</head>
+
+<body>
+    <!--登錄頁面-->
+    <div class="login-wrap">
+        <div class="login-con">
+            <p>🍇</p>
+            <span>Choose a great name</span>
+            <input type="text" placeholder="Grape" id="loginName" value="user1">
+            <input type="text" placeholder="Grape" id="signupName" value="">
+            <button class="login-btn" id="loginBtn">登入</button>
+            <button class="login-btn" id="signupBtn">註冊</button>
+        </div>
+    </div>
+
+    <!--聊天介面-->
+    <div class="chat-container hide">
+        <div class="chat-room">
+            <input type="text" id="room-name" placeholder="要加入的聊天室ID" class="">
+            <button class="add-room">加入聊天室</button>
+            <button class="create-room">建立新聊天室</button>
+            <ul class="room-list">
+
+            </ul>
+        </div>
+        <div class="chat-wrap ">
+            <div class="chat-wrap-top">
+                <h3 id="chat-title"> </h3>
+                <button class="leaveBtn"><img src="images/cross.png"></button>
+            </div>
+            <div class="chat-wrap-main" id="chat-wrap">
+                <div class="chat-con clearfix"></div>
+                <div class="bottom">
+                    <input type="text" id="sendtxt" placeholder="Type a message">
+                    <button class="sendBtn">
+                        傳送
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+
+<script>
+    // 註冊按鈕
+    const signupBtn = document.querySelector("#signupBtn");
+    const signupName = document.querySelector("#signupName");
+    // 加入聊天室按鈕
+    const loginBtn = document.querySelector("#loginBtn");
+    const loginName = document.querySelector("#loginName");
+    // 切換畫面
+    const loginWrap = document.querySelector(".login-wrap");
+    const chatWrap = document.querySelector(".chat-wrap");
+    const chatContainer = document.querySelector(".chat-container");
+    // 渲染畫面
+    const chatCon = document.querySelector(".chat-con");
+    // 送出按鈕
+    const sendBtn = document.querySelector(".sendBtn");
+    // 訊息框訊息
+    const sendtxt = document.querySelector("#sendtxt");
+    // 聊天室ID輸入框
+    const roomName = document.querySelector("#room-name");
+    // 加入聊天室按鈕
+    const addRoom = document.querySelector(".add-room");
+    // 建立聊天室按鈕
+    const createRoom = document.querySelector(".create-room");
+    // 聊天室列表
+    const roomList = document.querySelector(".room-list");
+
+    let ws = null;
+    let myId = null;
+    let chatroomId = null;
+    let chatroomList = null;
+    let html = "";
+    let headers = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "Access-Control-Allow-Origin": "*"
+    };
+
+    signupBtn.addEventListener("click", (e) => {
+        const obj = {
+            name: signupName.value
+        };
+        axios
+            .post("https://ws-fun-demo.herokuapp.com/member/signup", obj)
+            .then((res) => {
+                console.log(res.data);
+                headers.token = res.data.token;
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    });
+
+    loginBtn.addEventListener("click", (e) => {
+        const name = {
+            name: loginName.value
+        };
+        axios
+            .post("https://ws-fun-demo.herokuapp.com/member/login", name)
+            .then((res) => {
+                console.log(res.data);
+                ws = conWS(res.data.result._id);
+                myId = res.data.result._id;
+                chatroomList = res.data.result.chatroomid;
+                // 如果已經有聊天室 預設聊天室是第一個
+                chatroomId = res.data.result.chatroomid[0];
+                showChatroomList(chatroomList);
+                getMessageList({
+                    chatroomId: chatroomId
+                });
+                chatContainer.classList.remove("hide");
+                loginWrap.classList.add("hide");
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    });
+
+    sendBtn.addEventListener("click", (e) => {
+        const msg = {
+            roomid: chatroomId,
+            msg: sendtxt.value
+        };
+        sendtxt.value = "";
+        ws.send(JSON.stringify(msg));
+    });
+
+    addRoom.addEventListener("click", (e) => {
+        // 判斷聊天室是否存在
+        const roomData = {
+            chatroomid: null,
+            userid: null
+        }
+        if (chatroomList.length === 0) {
+            roomData.chatroomid = roomName.value;
+            roomData.userid = myId;
+        } else {
+            chatroomList.forEach((item) => {
+                if (item === roomName.value) {
+                    console.log("聊天室已存在");
+                    return;
+                } else {
+                    roomData.chatroomid = roomName.value;
+                    roomData.userid = myId;
+                }
+            });
+        }
+        console.log(roomData);
+        axios
+            .post("https://ws-fun-demo.herokuapp.com/member/addChatroom", roomData)
+            .then((res) => {
+                console.log(res.data);
+                chatroomList = res.data.chatroomid;
+                showChatroomList(chatroomList);
+                getMessageList(roomData.chatroomid);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    });
+
+    createRoom.addEventListener("click", (e) => {
+        const chatroomId = {
+            id: myId
+        };
+        axios
+            .post("https://ws-fun-demo.herokuapp.com/member/createChatroom", chatroomId)
+            .then((res) => {
+                console.log(res);
+                console.log(res.data);
+                chatroomList = res.data.result.chatroomid;
+                showChatroomList(chatroomList);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    });
+
+    // 聊天室列表委派
+    roomList.addEventListener("click", (e) => {
+        roomId = {
+            chatroomId: e.target.textContent
+        };
+        getMessageList(roomId);
+    });
+
+    const conWS = (userId) => {
+        let ws = new WebSocket("ws://ws-fun-demo.herokuapp.com/websockets?" + userId);
+
+        //開啟後執行的動作，指定一個 function 會在連結 WebSocket 後執行
+        ws.onopen = () => {
+            console.log("open connection1");
+        };
+
+        //關閉後執行的動作，指定一個 function 會在連結中斷後執行
+        ws.onclose = () => {
+            console.log("close connection");
+        };
+
+        ws.onmessage = (data) => {
+            console.log("data : ", data.data);
+            // const jsonData = JSON.parse(data);
+            showMessage(JSON.parse(data.data));
+        };
+
+        return ws;
+    };
+
+    /*顯示訊息*/
+    function showMessage(data) {
+        let arr = [data];
+        arr.forEach((data, ind) => {
+            if (data.userid === myId) {
+                html += `<div class="chat-item item-right clearfix">
+                    <span class="abs uname">me</span>
+                    <span class="message fr">${data.content}</span>
+                </div>`;
+            } else {
+                html += `<div class="chat-item item-left clearfix rela">
+                    <span class="abs uname">${data.userid}</span>
+                    <span class="fl message">${data.content}</span>
+                </div>`;
+            }
+        });
+        chatCon.innerHTML = html;
+        chatWrap.scrollTop = chatWrap.scrollHeight;
+    }
+
+    /*按下聊天室號碼顯示訊息*/
+    function clickBtnShowMessage(data) {
+        console.log(data);
+        data.forEach((data, ind) => {
+            if (data.userid === myId) {
+                html += `<div class="chat-item item-right clearfix">
+                    <span class="abs uname">me</span>
+                    <span class="message fr">${data.content}</span>
+                </div>`;
+            } else {
+                html += `<div class="chat-item item-left clearfix rela">
+                    <span class="abs uname">${data.userid}</span>
+                    <span class="fl message">${data.content}</span>
+                </div>`;
+            }
+        });
+        chatCon.innerHTML = html;
+        chatWrap.scrollTop = chatWrap.scrollHeight;
+    }
+
+    // 顯示聊天室列表
+    function showChatroomList(list) {
+        list.forEach((item, ind) => {
+            html += `
+  <li>
+  <input type="radio" class="chat-item-radio hide" id=${item} name="roomList">
+  <label for=${item}>
+    <div class="chat-item clearfix">
+      <span class="message fl">${item}</span>
+    </div>
+    </label>
+  </li>`;
+        });
+        roomList.innerHTML = html;
+        html = "";
+    }
+
+    // 取得聊天室訊息
+    function getMessageList(roomId) {
+        if (roomId === undefined) {
+            return;
+        }
+        axios
+            .post("https://ws-fun-demo.herokuapp.com/member/getMessage", roomId)
+            .then((res) => {
+                html = '';
+                // console.log(res);
+                // console.log(res.data);
+                clickBtnShowMessage(res.data.messageid);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+</script>
+
+<style>
+    /*公共样式*/
+    * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        font-family: "Heebo", sans-serif;
+    }
+
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        -ms-overflow-style: none;
+    }
+
+    body::-webkit-scrollbar {
+        display: none;
+    }
+
+    .clearfix:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+    }
+
+    .clearfix {
+        *zoom: 1;
+    }
+
+    .hide {
+        display: none !important;
+    }
+
+    .fr {
+        float: right;
+    }
+
+    .fl {
+        float: left;
+    }
+
+    .rela {
+        position: relative;
+    }
+
+    .abs {
+        position: absolute;
+    }
+
+    /*登錄頁面*/
+    .login-wrap {
+        background: repeating-linear-gradient(45deg,
+                #ead7ea 0,
+                #ead7ea 15%,
+                #ccc7e8 30%,
+                #ccc7e8 45%,
+                #ead7ea 60%);
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .login-con {
+        padding: 50px 20px;
+        background-color: white;
+        border-radius: 25px;
+        width: 70%;
+        max-width: 500px;
+    }
+
+    .login-con p {
+        font-size: 50px;
+        margin-bottom: 20px;
+    }
+
+    .login-con span {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .login-con input {
+        width: 50%;
+        min-width: 250px;
+        display: block;
+        margin: 20px auto;
+        height: 40px;
+        line-height: 40px;
+        border: none;
+        background-color: #f4e8f4;
+        padding: 0 20px;
+        border-radius: 20px;
+        outline: 0;
+    }
+
+    .login-con input::placeholder {
+        color: #a19bc4;
+    }
+
+    .login-con button {
+        width: 50%;
+        min-width: 250px;
+        display: block;
+        margin: 0 auto;
+        height: 40px;
+        line-height: 40px;
+        border: none;
+        background: #7062d1;
+        color: #fff;
+        border-radius: 20px;
+        margin-bottom: 20px;
+        outline: 0;
+    }
+
+    .login-con button:hover {
+        filter: brightness(0.8);
+        cursor: pointer;
+    }
+
+    /*聊天界⾯*/
+    .chat-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+    }
+
+    .chat-wrap {
+        width: 100%;
+        height: 100%;
+        overflow-y: scroll;
+        background-color: #f4f4f4;
+        text-align: center;
+    }
+
+    .chat-wrap-top {
+        position: relative;
+        background-color: white;
+        box-shadow: 0px -7px 15px #c3c4dd;
+        padding: 15px;
+        text-align: left;
+    }
+
+    .chat-wrap-top h3 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #494949;
+    }
+
+    .leaveBtn {
+        position: absolute;
+        right: 10px;
+        top: -3px;
+        padding: 17px;
+        border: none;
+        color: #7062d1;
+        background-color: transparent;
+        font-weight: 600;
+        font-size: 20px;
+        outline: none;
+        opacity: 0.3;
+    }
+
+    .leaveBtn img {
+        width: 15px;
+    }
+
+    .leaveBtn:hover {
+        cursor: pointer;
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .chat-wrap-main {
+        padding: 0 25px;
+        padding-bottom: 70px;
+    }
+
+    .chat-con {
+        padding: 10px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .chat-con p {
+        width: 50%;
+        padding: 5px 20px;
+        font-size: 12px;
+        border-radius: 5px;
+        margin: 15px 0;
+        color: gray;
+        border-radius: 20px;
+        opacity: 0.7;
+    }
+
+    .bottom {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.8);
+        padding-top: 30px;
+    }
+
+    .bottom input {
+        width: calc(100% - 120px);
+        margin: 0 20px;
+        height: 45px;
+        border-radius: 35px;
+        float: left;
+        border: none;
+        outline: none;
+        line-height: 50px;
+        padding: 0 20px;
+        box-shadow: 0px 0px 12px #d5d6e5;
+    }
+
+    .bottom button {
+        margin-right: 25px;
+        width: 45px;
+        height: 45px;
+        border-radius: 25px;
+        float: right;
+        border: none;
+        background: #979ae5;
+        outline: none;
+        color: #fff;
+    }
+
+    .bottom button:hover {
+        filter: brightness(1.1);
+        cursor: pointer;
+        transition: 0.2s;
+        transform: scale(1.05);
+    }
+
+    .sendBtn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sendBtn img {
+        width: 15px;
+    }
+
+    .chat-item-radio:checked~label>.chat-item {
+        background: #979ae5;
+        color: #fff;
+        border-radius: 8px;
+    }
+
+    .chat-item {
+        width: 100%;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .item-left .message {
+        background: #979ae5;
+        color: white;
+        font-size: 15px;
+        border-radius: 0px 15px 15px 15px;
+        margin-top: 20px;
+        padding: 15px !important;
+        font-weight: 400;
+    }
+
+    .item-right .message {
+        background: white;
+        color: #413177;
+        font-size: 15px;
+        font-weight: 400;
+        border-radius: 15px 0px 15px 15px;
+        padding: 15px !important;
+        margin-top: 20px;
+        margin-right: 0;
+    }
+
+    .item-left .uname {
+        font-size: 12px;
+        left: 0px;
+        top: 0;
+        color: gray;
+    }
+
+    .item-right .uname {
+        font-size: 12px;
+        right: 0px;
+        top: 0;
+        color: gray;
+    }
+
+    .chat-item .message {
+        display: block;
+        padding: 10px;
+    }
+</style>
