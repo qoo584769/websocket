@@ -1,7 +1,6 @@
 const express = require('express');
 const DB = require('./connection/mongooseDB');
 const signupRouter = require('./routers/memberRouter')
-const wsRouter = require('./routers/wsRouter')
 
 
 DB()
@@ -20,6 +19,5 @@ app.use((req,res,next)=>{
 })
 
 app.use('/member',signupRouter)
-app.use('/ws',wsRouter)
 
 module.exports = app;
