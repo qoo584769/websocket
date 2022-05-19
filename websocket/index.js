@@ -8,7 +8,7 @@ const websocketServer = (expressServer) => {
   const websocketServer = new WebSocket.Server({
     // noServer: true,
     // path: '/websockets',
-    expressServer
+    server:expressServer
   });
 
   expressServer.on('upgrade', (request, socket, head) => {
