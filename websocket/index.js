@@ -6,8 +6,9 @@ const websocketServer = (expressServer) => {
 
   // 建立新的ws伺服器
   const websocketServer = new WebSocket.Server({
-    noServer: true,
-    path: '/websockets',
+    // noServer: true,
+    // path: '/websockets',
+    expressServer
   });
 
   expressServer.on('upgrade', (request, socket, head) => {
