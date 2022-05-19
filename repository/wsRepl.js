@@ -153,7 +153,7 @@ async function addChatrommDB(modelData) {
 async function getMsgFromChatroom(modelData) {
   try {
     const chatRes = await chatroomModel
-      .findOne({ id: modelData.chatroomid })
+      .findOne({ _id: modelData.chatroomid })
       .populate({ path: 'messageid' });
     return chatRes;
   } catch (error) {
