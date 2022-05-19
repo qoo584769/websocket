@@ -196,10 +196,12 @@
 
     // 聊天室列表委派
     roomList.addEventListener("click", (e) => {
-        roomId = {
-            chatroomId: e.target.textContent
-        };
-        getMessageList(roomId);
+        if (e.target.tagName === 'SPAN') {
+            roomId = {
+                chatroomId: e.target.textContent
+            };
+            getMessageList(roomId);
+        }
     });
 
     const conWS = (userId) => {
@@ -266,8 +268,8 @@
 
     // 顯示聊天室列表
     function showChatroomList(list) {
+        html = '';
         list.forEach((item, ind) => {
-            
             if (ind === 0) {
                 html += `
                     <li>
@@ -278,7 +280,7 @@
                         </div>
                         </label>
                     </li>`;
-            }else{
+            } else {
                 html += `
                     <li>
                     <input type="radio" class="chat-item-radio hide" id=${item} name="roomList">
@@ -296,7 +298,7 @@
 
     // 取得聊天室訊息
     function getMessageList(roomId) {
-        if (roomId === undefined) {
+        if (roomId.chatroomId === undefined) {
             return;
         }
         axios
