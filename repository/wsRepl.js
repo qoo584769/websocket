@@ -107,7 +107,7 @@ async function createNewMsg(schemaModel = {}, modelData) {
     );
     // 加入成功再取得所在聊天室的列表
     const chatroomRes = await chatroomModel
-      .findOne({ _id: modelData.roomid })
+      .findOne({ id: modelData.roomid })
       .populate({ path: 'userid' });
     // .populate({path:'userid'});
     console.log('訊息新增成功');

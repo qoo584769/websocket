@@ -96,7 +96,7 @@
             name: signupName.value
         };
         axios
-            .post("https://ws-fun-demo.herokuapp.com/member/signup", obj,headers)
+            .post("https://ws-fun-demo.herokuapp.com/member/signup", obj, headers)
             .then((res) => {
                 console.log(res.data);
                 headers.token = res.data.token;
@@ -111,7 +111,7 @@
             name: loginName.value
         };
         axios
-            .post("https://ws-fun-demo.herokuapp.com/member/login", name,headers)
+            .post("https://ws-fun-demo.herokuapp.com/member/login", name, headers)
             .then((res) => {
                 console.log(res.data);
                 ws = conWS(res.data.result._id);
@@ -163,7 +163,7 @@
         }
         console.log(roomData);
         axios
-            .post("https://ws-fun-demo.herokuapp.com/member/addChatroom", roomData,headers)
+            .post("https://ws-fun-demo.herokuapp.com/member/addChatroom", roomData, headers)
             .then((res) => {
                 console.log(res.data);
                 chatroomList = res.data.chatroomid;
@@ -180,7 +180,7 @@
             id: myId
         };
         axios
-            .post("https://ws-fun-demo.herokuapp.com/member/createChatroom", chatroomId,headers)
+            .post("https://ws-fun-demo.herokuapp.com/member/createChatroom", chatroomId, headers)
             .then((res) => {
                 console.log(res);
                 console.log(res.data);
@@ -265,15 +265,27 @@
     // 顯示聊天室列表
     function showChatroomList(list) {
         list.forEach((item, ind) => {
-            html += `
-  <li>
-  <input type="radio" class="chat-item-radio hide" id=${item} name="roomList">
-  <label for=${item}>
-    <div class="chat-item clearfix">
-      <span class="message fl">${item}</span>
-    </div>
-    </label>
-  </li>`;
+            if (ind === 0) {
+                html += `
+                    <li>
+                    <input type="radio" class="chat-item-radio hide" id=${item} name="roomList" checked>
+                    <label for=${item}>
+                        <div class="chat-item clearfix">
+                        <span class="message fl">${item}</span>
+                        </div>
+                        </label>
+                    </li>`;
+            }else{
+                html += `
+                    <li>
+                    <input type="radio" class="chat-item-radio hide" id=${item} name="roomList">
+                    <label for=${item}>
+                        <div class="chat-item clearfix">
+                        <span class="message fl">${item}</span>
+                        </div>
+                        </label>
+                    </li>`;
+            }
         });
         roomList.innerHTML = html;
         html = "";
@@ -285,7 +297,7 @@
             return;
         }
         axios
-            .post("https://ws-fun-demo.herokuapp.com/member/getMessage", roomId,headers)
+            .post("https://ws-fun-demo.herokuapp.com/member/getMessage", roomId, headers)
             .then((res) => {
                 html = '';
                 // console.log(res);

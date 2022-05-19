@@ -50,7 +50,7 @@ const websocketServer = (expressServer) => {
           wsUser.forEach((wsItem)=>{
             // 比對所在聊天室跟線上使用者  有在線上而且是這間聊天室的使用者才傳送訊息
             if(resItem.id === wsItem.userid){
-              data.userid = resItem.id;
+              // data.userid = resItem.id;
               wsItem.ws.send(JSON.stringify(data));
             }
           })
