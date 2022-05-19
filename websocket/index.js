@@ -11,11 +11,11 @@ const websocketServer = (expressServer) => {
     server:expressServer
   });
 
-  expressServer.on('upgrade', (request, socket, head) => {
-    websocketServer.handleUpgrade(request, socket, head, (websocket) => {
-      websocketServer.emit('connection', websocket, request);
-    });
-  });
+  // expressServer.on('upgrade', (request, socket, head) => {
+  //   websocketServer.handleUpgrade(request, socket, head, (websocket) => {
+  //     websocketServer.emit('connection', websocket, request);
+  //   });
+  // });
 
   websocketServer.on(
     'connection',
