@@ -151,10 +151,15 @@ async function addChatrommDB(modelData) {
 }
 // 取得聊天室的訊息列表
 async function getMsgFromChatroom(modelData) {
-  const chatRes = await chatroomModel
-    .findOne({ _id: modelData.chatroomid })
-    .populate({ path: 'messageid' });
-  return chatRes;
+  try {
+    const chatRes = await chatroomModel
+      .findOne({ _id: modelData.chatroomid })
+      .populate({ path: 'messageid' });
+    return chatRes;
+  } catch (error) {
+    console.log('getMsgFromChatroom 錯誤');
+    return error;
+  }
 }
 // 登入
 async function loginDB(schemaModel, modelData) {
