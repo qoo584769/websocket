@@ -124,6 +124,7 @@
                 getMessageList({
                     chatroomId: chatroomId
                 });
+                chatroomList = null;
                 loginWrap.classList.add("hide");
                 chatContainer.classList.remove("hide");
             })
@@ -186,6 +187,7 @@
                 console.log(res.data);
                 chatroomList = res.data.result.chatroomid;
                 showChatroomList(chatroomList);
+                chatroomList = null;
             })
             .catch((err) => {
                 console.log(err);
@@ -265,6 +267,7 @@
     // 顯示聊天室列表
     function showChatroomList(list) {
         list.forEach((item, ind) => {
+            
             if (ind === 0) {
                 html += `
                     <li>
